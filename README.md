@@ -42,8 +42,8 @@ Una plataforma educativa moderna desarrollada con **FastAPI** para el aprendizaj
 
 ### 1. Clonar el repositorio
 ```bash
-git clone <tu-repositorio>
-cd pfm-back
+git clone https://github.com/MortalWings/MatEdu.git
+cd MatEdu
 ```
 
 ### 2. Crear entorno virtual
@@ -278,7 +278,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 - **Desarrollador**: Tu Nombre
 - **Email**: tu@email.com
-- **Proyecto**: [https://github.com/tu-usuario/edumath](https://github.com/tu-usuario/edumath)
+- **Proyecto**: [https://github.com/MortalWings/MatEdu](https://github.com/MortalWings/MatEdu)
 
 ---
 
