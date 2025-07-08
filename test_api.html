@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API MatEdu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        .success {
+            border-left-color: #28a745;
+            background-color: #d4edda;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Prueba de API MatEdu</h1>
+        
+        <!-- Estado del servidor -->
+        <div class="section">
+            <h2>🔌 Estado del Servidor</h2>
+            <div id="serverStatus" class="result">
+                <p>Verificando conexión...</p>
+            </div>
+            <button onclick="checkServerStatus()">Verificar Estado</button>
+        </div>
+        
+        <!-- Login -->
+        <div class="section">
+            <h2>🔐 Login</h2>
+            <div class="form-group">
+                <label for="loginEmail">Email:</label>
+                <input type="email" id="loginEmail" value="juan@estudiante.com">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Contraseña:</label>
+                <input type="password" id="loginPassword" value="estudiante123">
+            </div>
+            <button onclick="testLogin()">Iniciar Sesión</button>
+        </div>
+
+        <!-- Registro -->
+        <div class="section">
+            <h2>📝 Registro</h2>
+            <div class="form-group">
+                <label for="regNombre">Nombre:</label>
+                <input type="text" id="regNombre" value="Test">
+            </div>
+            <div class="form-group">
+                <label for="regApellido">Apellido:</label>
+                <input type="text" id="regApellido" value="Usuario">
+            </div>
+            <div class="form-group">
+                <label for="regEmail">Email:</label>
+                <input type="email" id="regEmail" value="test@example.com">
+            </div>
+            <div class="form-group">
+                <label for="regPassword">Contraseña:</label>
+                <input type="password" id="regPassword" value="password123">
+            </div>
+            <div class="form-group">
+                <label for="regTipo">Tipo de Usuario:</label>
+                <select id="regTipo">
+                    <option value="estudiante">Estudiante</option>
+                    <option value="profesor">Profesor</option>
+                </select>
+            </div>
+            <button onclick="testRegister()">Registrar</button>
+        </div>
+
+        <!-- Otras pruebas -->
+        <div class="section">
+            <h2>🧪 Otras Pruebas</h2>
+            <button onclick="testProfile()">Mi Perfil</button>
+            <button onclick="testCursos()">Listar Cursos</button>
+            <button onclick="testAreas()">Áreas Matemáticas</button>
+        </div>
+
+        <!-- Resultados -->
+        <div id="resultado" class="result" style="display: none;">
+            <h3>Resultado:</h3>
+            <pre id="resultadoTexto"></pre>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
+        let token = localStorage.getItem('access_token');
+
+        async function makeRequest(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers,
+                },
+                ...options,
+            };
+
+            // Agregar token si está disponible
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+
+            try {
+                const response = await fetch(url, config);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Error en la API');
+                }
+
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        function showResult(data, isError = false) {
+            const resultado = document.getElementById('resultado');
+            const resultadoTexto = document.getElementById('resultadoTexto');
+            
+            resultado.style.display = 'block';
+            resultado.className = `result ${isError ? 'error' : 'success'}`;
+            resultadoTexto.textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function testLogin() {
+            try {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                const response = await makeRequest('/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password }),
+                });
+
+                if (response.access_token) {
+                    token = response.access_token;
+                    localStorage.setItem('access_token', token);
+                }
+
+                showResult(response);
+            } catch (error) {
+                showResult({ error: error.message }, true);
+            }
+        }
+
+        async function testRegister() {
+            try {
+                const userData = {
+                    nombre: document.getElementById('regNombre').value,
+                    apellido: document.getElementById('regApellido').value,
+                    email: document.getElementById('regEmail').value,
+                    password: document.getElementById('regPassword').value,
+                    tipo_usuario: document.getElementById('regTipo').value
+                };
+
+                const response = await makeRequest('/auth/registro', {
+                    method: 'POST',
+                    body: JSON.stringify(userData),
+                });
+
+                showResult(response);
+            } catch (error) {
+                showResult({ error: error.message }, true);
+            }
+        }
+
+        async function testProfile() {
+            try {
+                const response = await makeRequest('/usuarios/me');
+                showResult(response);
+            } catch (error) {
+                showResult({ error: error.message }, true);
+            }
+        }
+
+        async function testCursos() {
+            try {
+                const response = await makeRequest('/cursos');
+                showResult(response);
+            } catch (error) {
+                showResult({ error: error.message }, true);
+            }
+        }
+
+        async function testAreas() {
+            try {
+                const response = await makeRequest('/areas-matematicas');
+                showResult(response);
+            } catch (error) {
+                showResult({ error: error.message }, true);
+            }
+        }
+    </script>
+</body>
+</html></code></pre>
+</div>
+</body>
+</html>
