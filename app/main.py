@@ -17,9 +17,18 @@ app = FastAPI(
 )
 
 # Configurar CORS
+origins = [
+    "http://localhost:3000",  # React dev
+    "http://localhost:5173",  # Vite dev
+    "http://localhost:8080",  # Vue dev
+    "https://*.vercel.app",   # Vercel deployments
+    "https://*.netlify.app",  # Netlify deployments
+    "*"  # Para desarrollo - en producción cambiar por dominios específicos
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producción, especificar dominios exactos
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
