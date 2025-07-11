@@ -28,6 +28,12 @@ class EstadoProgreso(str, enum.Enum):
     EN_PROGRESO = "en_progreso"
     COMPLETADO = "completado"
 
+class EstadoAsignacion(str, enum.Enum):
+    ASIGNADO = "asignado"
+    EN_PROGRESO = "en_progreso"
+    COMPLETADO = "completado"
+    VENCIDO = "vencido"
+
 # ================================
 # MODELOS SQLAlchemy (Base de Datos)
 # ================================
@@ -223,6 +229,42 @@ class LogroUsuario(Base):
     usuario = relationship("Usuario", back_populates="logros_usuario")
     logro = relationship("Logro", back_populates="logros_usuario")
 
+class AsignacionCurso(Base):
+    __tablename__ = "asignaciones_cursos"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    fecha_asignacion = Column(DateTime, default=datetime.utcnow)
+    fecha_limite = Column(DateTime)
+    estado = Column(Enum(EstadoAsignacion), default=EstadoAsignacion.ASIGNADO)
+    observaciones = Column(Text)
+    progreso_porcentaje = Column(Float, default=0.0)
+    puntos_obtenidos = Column(Integer, default=0)
+    fecha_inicio = Column(DateTime)
+    fecha_completion = Column(DateTime)
+    
+    # Claves foráneas
+    profesor_id = Column(Integer, ForeignKey("usuarios.id"))
+    estudiante_id = Column(Integer, ForeignKey("usuarios.id"))
+    curso_id = Column(Integer, ForeignKey("cursos.id"))
+    
+    # Relaciones
+    curso = relationship("Curso")
+    profesor = relationship("Usuario", foreign_keys=[profesor_id])
+    estudiante = relationship("Usuario", foreign_keys=[estudiante_id])
+
+class ProfesorEstudiante(Base):
+    __tablename__ = "profesor_estudiante"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    fecha_asignacion = Column(DateTime, default=datetime.utcnow)
+    activo = Column(Boolean, default=True)
+    
+    # Claves foráneas
+    profesor_id = Column(Integer, ForeignKey("usuarios.id"))
+    estudiante_id = Column(Integer, ForeignKey("usuarios.id"))
+    
+    # Sin relaciones directas para evitar conflictos
+
 # ================================
 # MODELOS PYDANTIC (API)
 # ================================
@@ -381,3 +423,86 @@ class LoginRequest(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+# Modelos para Asignación de Cursos
+class AsignarCursoRequest(BaseModel):
+    curso_id: int
+    estudiantes_ids: List[int]
+    fecha_limite: Optional[datetime] = None
+    observaciones: Optional[str] = None
+
+class AsignacionCursoResponse(BaseModel):
+    id: int
+    curso: CursoResponse
+    profesor: UsuarioResponse
+    estudiante: UsuarioResponse
+    fecha_asignacion: datetime
+    fecha_limite: Optional[datetime]
+    estado: EstadoAsignacion
+    observaciones: Optional[str]
+    progreso_porcentaje: float
+    puntos_obtenidos: int
+    
+    class Config:
+        from_attributes = True
+
+class CursoAsignadoResponse(BaseModel):
+    id: int
+    curso: CursoResponse
+    profesor: UsuarioResponse
+    fecha_asignacion: datetime
+    fecha_limite: Optional[datetime]
+    estado: EstadoAsignacion
+    progreso_porcentaje: float
+    observaciones: Optional[str]
+    
+    class Config:
+        from_attributes = True
+
+# Modelos de actualización
+class UsuarioUpdate(BaseModel):
+    nombre: Optional[str] = None
+    apellido: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    tipo_usuario: Optional[TipoUsuario] = None
+    fecha_nacimiento: Optional[datetime] = None
+    activo: Optional[bool] = None
+
+class CursoUpdate(BaseModel):
+    titulo: Optional[str] = None
+    descripcion: Optional[str] = None
+    duracion_estimada: Optional[int] = None
+    nivel_dificultad: Optional[NivelDificultad] = None
+    precio: Optional[float] = None
+    imagen_url: Optional[str] = None
+    activo: Optional[bool] = None
+    area_matematica_id: Optional[int] = None
+
+class LeccionUpdate(BaseModel):
+    titulo: Optional[str] = None
+    descripcion: Optional[str] = None
+    contenido: Optional[str] = None
+    video_url: Optional[str] = None
+    orden: Optional[int] = None
+    puntos_otorgados: Optional[int] = None
+    tiempo_estimado: Optional[int] = None
+    activa: Optional[bool] = None
+
+class EjercicioUpdate(BaseModel):
+    titulo: Optional[str] = None
+    enunciado: Optional[str] = None
+    tipo_ejercicio: Optional[TipoEjercicio] = None
+    nivel_dificultad: Optional[NivelDificultad] = None
+    puntos_otorgados: Optional[int] = None
+    tiempo_limite: Optional[int] = None
+    orden: Optional[int] = None
+    activo: Optional[bool] = None
+    opciones_json: Optional[str] = None
+    respuesta_correcta: Optional[str] = None
+    explicacion: Optional[str] = None
+    formula_latex: Optional[str] = None
+
+class AsignarEstudianteProfesorRequest(BaseModel):
+    profesor_id: int
+    estudiante_id: int

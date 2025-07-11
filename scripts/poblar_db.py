@@ -9,6 +9,7 @@ from app.database import SessionLocal, engine
 from app.models import *
 from app.auth import get_password_hash
 import json
+from datetime import datetime, timedelta
 
 def crear_datos_ejemplo():
     db = SessionLocal()
@@ -302,6 +303,42 @@ x = 4
             db.add(logro)
         db.commit()
         print("✅ Logros creados")
+        
+        # Crear relaciones profesor-estudiante
+        print("📚 Creando relaciones profesor-estudiante...")
+        
+        # María (profesor) tiene a Juan (estudiante)
+        relacion1 = ProfesorEstudiante(
+            profesor_id=2,  # María
+            estudiante_id=1  # Juan
+        )
+        db.add(relacion1)
+        
+        # Asignar cursos a estudiantes
+        print("🎯 Asignando cursos a estudiantes...")
+        
+        # María asigna Álgebra Básica a Juan
+        asignacion1 = AsignacionCurso(
+            profesor_id=2,  # María
+            estudiante_id=1,  # Juan
+            curso_id=1,  # Álgebra Básica
+            observaciones="Curso fundamental para tu nivel",
+            fecha_limite=datetime.now() + timedelta(days=90)
+        )
+        db.add(asignacion1)
+        
+        # María asigna Geometría Básica a Juan
+        asignacion2 = AsignacionCurso(
+            profesor_id=2,  # María
+            estudiante_id=1,  # Juan
+            curso_id=2,  # Geometría Básica
+            observaciones="Continúa con geometría después del álgebra",
+            fecha_limite=datetime.now() + timedelta(days=120)
+        )
+        db.add(asignacion2)
+        
+        db.commit()
+        print("✅ Relaciones y asignaciones creadas")
         
         print("\n🎉 ¡Datos de ejemplo creados exitosamente!")
         print("\n📋 Resumen:")

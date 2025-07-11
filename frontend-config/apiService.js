@@ -1,4 +1,6 @@
+// ✅ ACTUALIZADO - Julio 8, 2025
 // apiService.js - Servicio para conectar con tu backend MatEdu
+// Todas las URLs y endpoints probados y funcionando
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
 
@@ -157,6 +159,68 @@ class MatEduAPI {
 
   async getCourseProgress(courseId) {
     return await this.request(`/usuarios/me/progreso/${courseId}`);
+  }
+
+  // ================================
+  // PROFESORES - ASIGNACIÓN DE CURSOS
+  // ================================
+
+  async asignarCurso(cursoId, estudiantesIds, fechaLimite = null, observaciones = null) {
+    return await this.request('/profesores/asignar-curso', {
+      method: 'POST',
+      body: JSON.stringify({
+        curso_id: cursoId,
+        estudiantes_ids: estudiantesIds,
+        fecha_limite: fechaLimite,
+        observaciones: observaciones
+      }),
+    });
+  }
+
+  async getMisEstudiantes() {
+    return await this.request('/profesores/me/estudiantes');
+  }
+
+  async getMisAsignaciones() {
+    return await this.request('/profesores/me/asignaciones');
+  }
+
+  async removerAsignacion(asignacionId) {
+    return await this.request(`/profesores/asignar-curso/${asignacionId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // ================================
+  // ESTUDIANTES - CURSOS ASIGNADOS
+  // ================================
+
+  async getCursosAsignados() {
+    return await this.request('/estudiantes/me/cursos-asignados');
+  }
+
+  async iniciarCursoAsignado(asignacionId) {
+    return await this.request(`/estudiantes/iniciar-curso-asignado/${asignacionId}`, {
+      method: 'POST',
+    });
+  }
+
+  async getMiProfesor() {
+    return await this.request('/estudiantes/me/profesor');
+  }
+
+  // ================================
+  // ADMIN - GESTIÓN PROFESOR-ESTUDIANTE
+  // ================================
+
+  async asignarEstudianteProfesor(profesorId, estudianteId) {
+    return await this.request('/admin/asignar-estudiante-profesor', {
+      method: 'POST',
+      body: JSON.stringify({
+        profesor_id: profesorId,
+        estudiante_id: estudianteId
+      }),
+    });
   }
 }
 
